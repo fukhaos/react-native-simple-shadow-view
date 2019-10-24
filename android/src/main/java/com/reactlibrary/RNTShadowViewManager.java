@@ -20,6 +20,34 @@ public class RNTShadowViewManager extends ViewGroupManager<ShadowView> {
         }
     }
 
+    @ReactProp(name = "borderTopLeftRadius", defaultDouble = 0)
+    public void setBorderTopLeftRadius(final ShadowView shadowView, @Nullable double borderTopLeftRadius) {
+        if (shadowView != null) {
+            shadowView.setBorderTopLeftRadius(borderTopLeftRadius);
+        }
+    }
+
+    @ReactProp(name = "borderTopRightRadius", defaultDouble = 0)
+    public void setBorderTopRightRadius(final ShadowView shadowView, @Nullable double borderTopRightRadius) {
+        if (shadowView != null) {
+            shadowView.setBorderTopRightRadius(borderTopRightRadius);
+        }
+    }
+
+    @ReactProp(name = "borderBottomLeftRadius", defaultDouble = 0)
+    public void setBorderBottomLeftRadius(final ShadowView shadowView, @Nullable double borderBottomLeftRadius) {
+        if (shadowView != null) {
+            shadowView.setBorderBottomLeftRadius(borderBottomLeftRadius);
+        }
+    }
+
+    @ReactProp(name = "borderBottomRightRadius", defaultDouble = 0)
+    public void setBorderBottomRightRadius(final ShadowView shadowView, @Nullable double borderBottomRightRadius) {
+        if (shadowView != null) {
+            shadowView.setBorderBottomRightRadius(borderBottomRightRadius);
+        }
+    }
+
     @ReactProp(name = "borderColor")
     public void setBorderColor(final ShadowView shadowView, @Nullable String borderColor) {
         if (shadowView != null) {

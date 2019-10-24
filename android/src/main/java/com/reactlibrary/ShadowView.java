@@ -11,12 +11,17 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
+import android.graphics.Path;
 
 public class ShadowView extends ViewGroup {
     int shadowOffsetX = 0;
     int shadowOffsetY = (int)(-2 * Resources.getSystem().getDisplayMetrics().density);
     int shadowRadius = 0;
     int borderRadius = 0;
+    int borderTopLeftRadius = 0;
+    int borderTopRightRadius = 0;
+    int borderBottomLeftRadius = 0;
+    int borderBottomRightRadius = 0;
     int shadowColor;
     int shadowColorToDraw;
     int borderShadowColor;
@@ -75,6 +80,26 @@ public class ShadowView extends ViewGroup {
 
     public void setBorderRadius(double borderRadius) {
         this.borderRadius=(int) (borderRadius * Resources.getSystem().getDisplayMetrics().density);
+        invalidate();
+    }
+
+    public void setBorderTopLeftRadius(double borderTopLeftRadius) {
+        this.borderTopLeftRadius=(int) (borderTopLeftRadius * Resources.getSystem().getDisplayMetrics().density);
+        invalidate();
+    }
+
+    public void setBorderTopRightRadius(double borderTopRightRadius) {
+        this.borderTopRightRadius=(int) (borderTopRightRadius * Resources.getSystem().getDisplayMetrics().density);
+        invalidate();
+    }
+
+    public void setBorderBottomLeftRadius(double borderBottomLeftRadius) {
+        this.borderBottomLeftRadius=(int) (borderBottomLeftRadius * Resources.getSystem().getDisplayMetrics().density);
+        invalidate();
+    }
+
+    public void setBorderBottomRightRadius(double borderBottomRightRadius) {
+        this.borderBottomRightRadius=(int) (borderBottomRightRadius * Resources.getSystem().getDisplayMetrics().density);
         invalidate();
     }
 
@@ -142,7 +167,15 @@ public class ShadowView extends ViewGroup {
         canvas.drawBitmap(shadowBitmap, imageRect, targetRect, viewPaint);
 
         Object contentRect = new RectF(0, 0, getWidth(), getHeight());
-        canvas.drawRoundRect((RectF)contentRect, borderRadius, borderRadius, viewPaint);
+//        canvas.drawRoundRect((RectF)contentRect, borderRadius, borderRadius, viewPaint);
+        Path path = RoundedRect(
+                (RectF)contentRect,
+                borderTopLeftRadius > 0 ? borderTopLeftRadius : borderRadius,
+                borderTopRightRadius > 0 ? borderTopRightRadius : borderRadius,
+                borderBottomRightRadius > 0? borderBottomRightRadius : borderRadius,
+                borderBottomLeftRadius > 0 ? borderBottomLeftRadius : borderRadius
+        );
+        canvas.drawPath(path, viewPaint);
     }
 
     public Bitmap createShadowForView() {
@@ -151,7 +184,83 @@ public class ShadowView extends ViewGroup {
         Paint shadowPaint = new Paint();
         shadowPaint.setAntiAlias(true);
         shadowPaint.setColor(shadowColorToDraw);
-        canvas.drawRoundRect( new RectF(margin, margin, bitmap.getWidth() - margin, bitmap.getHeight() - margin), borderRadius, borderRadius, shadowPaint);
+
+        Object contentRect = new RectF(margin, margin, bitmap.getWidth() - margin, bitmap.getHeight() - margin);
+//        canvas.drawRoundRect((RectF)contentRect, borderRadius, borderRadius, shadowPaint);
+        Path path = RoundedRect(
+                (RectF)contentRect,
+                borderTopLeftRadius > 0 ? borderTopLeftRadius : borderRadius,
+                borderTopRightRadius > 0 ? borderTopRightRadius : borderRadius,
+                borderBottomRightRadius > 0? borderBottomRightRadius : borderRadius,
+                borderBottomLeftRadius > 0 ? borderBottomLeftRadius : borderRadius
+        );
+        canvas.drawPath(path, shadowPaint);
         return BlurBuilder.blur(getContext(), bitmap, shadowRadius);
+    }
+
+    public static Path RoundedRect(RectF rect, float tl, float tr, float br, float bl) {
+        float left = rect.left;
+        float top = rect.top;
+        float right = rect.right;
+        float bottom = rect.bottom;
+        Path path = new Path();
+
+        if (tl < 0) tl = 0;
+        if (tr < 0) tr = 0;
+        if (br < 0) br = 0;
+        if (bl < 0) bl = 0;
+        float width = right - left;
+        float height = bottom - top;
+
+        float tlTop = tl > width / 2 ? width / 2 : tl;
+        float tlLeft = tl > height / 2 ? height / 2 : tl;
+        float trTop = tr > width / 2 ? width / 2 : tr;
+        float trRight = tr > height / 2 ? height / 2 : tr;
+        float brBottom = br > width / 2 ? width / 2 : br;
+        float brRight = br > height / 2 ? height / 2 : br;
+        float blBottom = bl > width / 2 ? width / 2 : bl;
+        float blLeft = bl > height / 2 ? height / 2 : bl;
+
+        float topWidthMinusCorners = (width - tlTop - trTop);
+        float bottomWidthMinusCorners = (width - blBottom - brBottom);
+        float leftHightMinusCorners = (height - tlLeft - blLeft);
+        float rightHightMinusCorners = (height - trRight - brRight);
+
+        path.moveTo(right, top + trRight);
+        if (tr > 0)
+            path.rQuadTo(0, -trRight, -trTop, -trRight);//top-right corner
+        else{
+            path.rLineTo(0, -trRight);
+            path.rLineTo(-trTop,0);
+        }
+        path.rLineTo(-topWidthMinusCorners, 0);
+
+        if (tl > 0)
+            path.rQuadTo(-tlTop, 0, -tlTop, tlLeft); //top-left corner
+        else{
+            path.rLineTo(-tlTop, 0);
+            path.rLineTo(0,tlLeft);
+        }
+        path.rLineTo(0, leftHightMinusCorners);
+
+        if (bl > 0)
+            path.rQuadTo(0, blLeft, blBottom, blLeft);//bottom-left corner
+        else{
+            path.rLineTo(0, blLeft);
+            path.rLineTo(blBottom,0);
+        }
+        path.rLineTo(bottomWidthMinusCorners, 0);
+
+        if (br > 0)
+            path.rQuadTo(brBottom, 0, brBottom, -brRight); //bottom-right corner
+        else{
+            path.rLineTo(brBottom,0);
+            path.rLineTo(0, -brRight);
+        }
+        path.rLineTo(0, -bottomWidthMinusCorners);
+
+        path.close();//Given close, last lineto can be removed.
+
+        return path;
     }
 }
